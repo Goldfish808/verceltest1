@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" />
+<style>
+  html, body { margin: 0; padding: 0; background: #161826; color: #e9e9ed; font-family: "Inter", "Noto Sans KR", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: #b5abfc; text-decoration: none; }
+  a:hover { color: #d2cefd; }
+  button { font-family: inherit; cursor: pointer; }
+  input, select, textarea { font-family: inherit; }
+  ::selection { background: rgba(150,138,224,0.35); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #3f424d; border-radius: 8px; }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulseRing { 0% { opacity: .25; transform: scale(.8); } 70% { opacity: 0; transform: scale(1.6); } 100% { opacity: 0; } }
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<div style="height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #161826;">
+
+  <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 16.8px; padding: 8.4px 16.8px; background: #1b1d2b; border-bottom: 1px solid #3f424d; min-height: 52px;">
+    <div style="display: flex; align-items: center; gap: 8.4px; flex: 0 0 auto;">
+      <div style="width: 22px; height: 22px; border-radius: 6px; border: 1px solid #968ae0; display: grid; place-items: center; font-size: 11px; color: #b5abfc;">B</div>
+      <div style="font-size: 12.5px; letter-spacing: .04em; color: #9397ab; white-space: nowrap;">BUILDER</div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 2.8px; padding: 2.8px; border: 1px solid #3f424d; border-radius: 999px; background: #161826;">
+      <button onClick="{{ setOwner }}" style="border: none; border-radius: 999px; padding: 5.6px 14px; font-size: 12.5px; background: {{ ownerBtnBg }}; color: {{ ownerBtnFg }};">오너 모드</button>
+      <button onClick="{{ setVisitor }}" style="border: none; border-radius: 999px; padding: 5.6px 14px; font-size: 12.5px; background: {{ visitorBtnBg }}; color: {{ visitorBtnFg }};">방문자 모드</button>
+    </div>
+
+    <div style="flex: 1 1 auto;"></div>
+
+    <sc-if value="{{ isOwner }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; align-items: center; gap: 8.4px;">
+        <div style="display: none; align-items: center; gap: 2.8px; padding: 2.8px; border: 1px solid #3f424d; border-radius: 999px; background: #161826;"></div>
+        <button onClick="{{ toggleEditStyle }}" style="background: transparent; border: 1px solid #3f424d; color: #9397ab; border-radius: 999px; padding: 5.6px 11.2px; font-size: 11.5px;">편집 방식 · {{ editStyleLabel }}</button>
+        <button onClick="{{ toggleEditing }}" style="border: 1px solid #968ae0; border-radius: 999px; padding: 5.6px 14px; font-size: 12.5px; background: {{ editBtnBg }}; color: {{ editBtnFg }};">{{ editBtnLabel }}</button>
+      </div>
+    </sc-if>
+
+    <div style="display: flex; align-items: center; gap: 5.6px; font-size: 11.5px; color: #75798c; white-space: nowrap;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #968ae0; display: inline-block;"></span>{{ vpLabel }}
+    </div>
+  </div>
+
+  <div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: {{ gridCols }}; position: relative;">
+
+    <aside style="min-height: 0; overflow-y: auto; border-right: 1px solid #3f424d; background: #1b1d2b; display: {{ dLeft }}; flex-direction: column; gap: 16.8px; padding: 16.8px;">
+      <sc-if value="{{ isOwner }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 16.8px;">
+          <div style="display: flex; align-items: center; gap: 11.2px;">
+            <image-slot id="owner-avatar" style="width: 42px; height: 42px;" shape="circle" placeholder="오너"></image-slot>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+              <div style="font-size: 14px; font-weight: 500;">{{ ownerName }}</div>
+              <div style="font-size: 11.5px; color: #75798c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ subdomain }}</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8.4px;">
+            <sc-for list="{{ metrics }}" as="m" hint-placeholder-count="6">
+              <div style="border: 1px solid #3f424d; border-radius: 8px; padding: 11.2px; background: #232532; display: flex; flex-direction: column; gap: 4px;">
+                <div style="font-size: 10.5px; letter-spacing: .05em; color: #75798c; text-transform: uppercase;">{{ m.label }}</div>
+                <div style="font-size: 19px; font-weight: 500; color: #e9e9ed;">{{ m.value }}</div>
+                <div style="font-size: 10.5px; color: {{ m.deltaColor }};">{{ m.delta }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8.4px;">
+            <div style="font-size: 11px; letter-spacing: .06em; color: #75798c; text-transform: uppercase;">오늘 예약</div>
+            <sc-for list="{{ todayBookings }}" as="b" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 8.4px; padding: 8.4px 0; border-bottom: 1px solid rgba(233,233,237,0.08);">
+                <div style="font-size: 12.5px; color: #b5abfc; width: 46px; flex: 0 0 auto;">{{ b.time }}</div>
+                <div style="flex: 1 1 auto; min-width: 0;">
+                  <div style="font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ b.name }}</div>
+                  <div style="font-size: 11px; color: #75798c;">{{ b.kind }}</div>
+                </div>
+                <div style="font-size: 10.5px; padding: 2px 7px; border-radius: 999px; border: 1px solid #3f424d; color: #9397ab;">{{ b.status }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8.4px;">
+            <div style="font-size: 11px; letter-spacing: .06em; color: #75798c; text-transform: uppercase;">접근 요청 대기</div>
+            <sc-for list="{{ accessRequests }}" as="r" hint-placeholder-count="2">
+              <div style="display: flex; align-items: center; gap: 8.4px; padding: 8.4px; border: 1px solid #3f424d; border-radius: 8px; background: #232532;">
+                <div style="flex: 1 1 auto; min-width: 0;">
+                  <div style="font-size: 12.5px;">{{ r.name }}</div>
+                  <div style="font-size: 11px; color: #75798c;">{{ r.note }}</div>
+                </div>
+                <button onClick="{{ r.approve }}" style="background: transparent; border: 1px solid #968ae0; color: #b5abfc; border-radius: 6px; padding: 4px 9px; font-size: 11px;">승인</button>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8.4px;">
+            <div style="font-size: 11px; letter-spacing: .06em; color: #75798c; text-transform: uppercase;">알림 센터</div>
+            <sc-for list="{{ notifications }}" as="n" hint-placeholder-count="3">
+              <div style="display: flex; gap: 8.4px; padding: 5.6px 0;">
+                <div style="width: 5px; height: 5px; border-radius: 50%; background: {{ n.dot }}; margin-top: 6px; flex: 0 0 auto;"></div>
+                <div style="font-size: 12px; color: #b2b6ca; line-height: 1.5;">{{ n.text }}<span style="color: #595d6c;"> · {{ n.ago }}</span></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isVisitor }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 16.8px;">
+          <div style="display: flex; align-items: center; gap: 11.2px;">
+            <image-slot id="visitor-avatar" style="width: 42px; height: 42px;" shape="circle" placeholder="프로필"></image-slot>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <div style="font-size: 14px; font-weight: 500;">{{ visitorName }}</div>
+              <div style="font-size: 11.5px; color: #75798c;">{{ visitorHandle }}</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8.4px; text-align: center;">
+            <sc-for list="{{ visitorStats }}" as="s" hint-placeholder-count="3">
+              <div style="border: 1px solid #3f424d; border-radius: 8px; padding: 8.4px; background: #232532;">
+                <div style="font-size: 17px; font-weight: 500;">{{ s.value }}</div>
+                <div style="font-size: 10.5px; color: #75798c;">{{ s.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8.4px;">
+            <div style="font-size: 11px; letter-spacing: .06em; color: #75798c; text-transform: uppercase;">내 예약</div>
+            <sc-for list="{{ myBookings }}" as="b" hint-placeholder-count="2">
+              <div style="border: 1px solid #3f424d; border-radius: 8px; padding: 11.2px; background: #232532; display: flex; flex-direction: column; gap: 5.6px;">
+                <div style="display: flex; justify-content: space-between; gap: 8.4px;">
+                  <div style="font-size: 12.5px;">{{ b.title }}</div>
+                  <div style="font-size: 10.5px; padding: 2px 7px; border-radius: 999px; background: #2b2741; color: #d2cefd;">{{ b.status }}</div>
+                </div>
+                <div style="font-size: 11.5px; color: #9397ab;">{{ b.when }}</div>
+                <div style="display: flex; gap: 5.6px;">
+                  <button onClick="{{ b.edit }}" style="background: transparent; border: 1px solid #3f424d; color: #b2b6ca; border-radius: 6px; padding: 4px 9px; font-size: 11px;">변경</button>
+                  <button onClick="{{ b.cancel }}" style="background: transparent; border: 1px solid #3f424d; color: #75798c; border-radius: 6px; padding: 4px 9px; font-size: 11px;">취소</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8.4px;">
+            <div style="font-size: 11px; letter-spacing: .06em; color: #75798c; text-transform: uppercase;">아카이브</div>
+            <div style="display: flex; gap: 5.6px; flex-wrap: wrap;">
+              <sc-for list="{{ archiveCats }}" as="c" hint-placeholder-count="4">
+                <button onClick="{{ c.select }}" style="border: 1px solid #3f424d; border-radius: 999px; padding: 4px 11.2px; font-size: 11.5px; background: {{ c.bg }}; color: {{ c.fg }};">{{ c.label }}</button>
+              </sc-for>
+            </div>
+            <sc-for list="{{ archiveItems }}" as="a" hint-placeholder-count="4">
+              <div onClick="{{ a.open }}" style="display: flex; gap: 8.4px; align-items: center; padding: 5.6px 0; border-bottom: 1px solid rgba(233,233,237,0.08); cursor: pointer;">
+                <div style="width: 34px; height: 34px; border-radius: 6px; flex: 0 0 auto; background: repeating-linear-gradient(45deg, #292b31 0 4px, #232532 4px 8px);"></div>
+                <div style="min-width: 0;">
+                  <div style="font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ a.title }}</div>
+                  <div style="font-size: 11px; color: #75798c;">{{ a.meta }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8.4px;">
+            <div style="font-size: 11px; letter-spacing: .06em; color: #75798c; text-transform: uppercase;">알림 · 메시지</div>
+            <sc-for list="{{ notifications }}" as="n" hint-placeholder-count="3">
+              <div style="display: flex; gap: 8.4px; padding: 5.6px 0;">
+                <div style="width: 5px; height: 5px; border-radius: 50%; background: {{ n.dot }}; margin-top: 6px; flex: 0 0 auto;"></div>
+                <div style="font-size: 12px; color: #b2b6ca; line-height: 1.5;">{{ n.text }}<span style="color: #595d6c;"> · {{ n.ago }}</span></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </aside>
+
+    <main style="min-height: 0; overflow-y: auto; background: #161826; display: {{ dCenter }}; flex-direction: column; position: relative;">
+
+      <div style="position: {{ menuPos }}; top: 0; z-index: 12; background: rgba(22,24,38,0.92); backdrop-filter: blur(10px); border-bottom: 1px solid #3f424d;">
+        <div style="display: flex; align-items: center; gap: 11.2px; padding: 11.2px 22.4px;">
+          <image-slot id="channel-icon" style="width: 30px; height: 30px;" shape="rounded" radius="8" placeholder="ICON"></image-slot>
+          <div style="min-width: 0; flex: 1 1 auto;">
+            <div style="font-size: 15px; font-weight: 500; letter-spacing: -.01em; color: {{ pc }};">{{ channelName }}</div>
+            <div style="font-size: 10.5px; color: #75798c;">{{ subdomain }}</div>
+          </div>
+          <sc-if value="{{ isVisitor }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ toggleSubscribe }}" style="border: 1px solid {{ pc }}; border-radius: 999px; padding: 5.6px 14px; font-size: 12px; background: {{ subBg }}; color: {{ subFg }};">{{ subLabel }}</button>
+          </sc-if>
+          <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size: 11px; color: #b5abfc; border: 1px dashed #5d5294; border-radius: 999px; padding: 4px 9px;">편집 중</div>
+          </sc-if>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 5.6px; padding: 0 22.4px 11.2px; overflow-x: auto;">
+          <sc-for list="{{ navPages }}" as="p" hint-placeholder-count="6">
+            <button onClick="{{ p.go }}" style="flex: 0 0 auto; border: {{ p.border }}; border-radius: {{ p.radius }}; padding: 5.6px 12px; font-size: 12.5px; background: {{ p.bg }}; color: {{ p.fg }};">{{ p.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 33.6px; padding: 22.4px 22.4px 120px;">
+        <sc-for list="{{ comps }}" as="c" hint-placeholder-count="4">
+          <section onClick="{{ c.select }}" style="position: relative; border-radius: 14px; outline: {{ c.outline }}; outline-offset: 6px; cursor: {{ c.cursor }};">
+
+            <sc-if value="{{ c.showTools }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; top: -14px; right: 0; z-index: 8; display: flex; gap: 4px; background: #232532; border: 1px solid #5d5294; border-radius: 999px; padding: 3px;">
+                <button onClick="{{ c.up }}" style="border: none; background: transparent; color: #b2b6ca; font-size: 11px; padding: 2px 7px; border-radius: 999px;">↑</button>
+                <button onClick="{{ c.down }}" style="border: none; background: transparent; color: #b2b6ca; font-size: 11px; padding: 2px 7px; border-radius: 999px;">↓</button>
+                <button onClick="{{ c.remove }}" style="border: none; background: transparent; color: #9397ab; font-size: 11px; padding: 2px 7px; border-radius: 999px;">삭제</button>
+              </div>
+              <div style="position: absolute; top: -14px; left: 0; z-index: 8; font-size: 10.5px; color: #b5abfc; background: #232532; border: 1px solid #5d5294; border-radius: 999px; padding: 2px 9px;">{{ c.typeLabel }}</div>
+            </sc-if>
+
+            <sc-if value="{{ c.isHero }}" hint-placeholder-val="{{ true }}">
+              <div style="position: relative; border-radius: 14px; overflow: hidden; min-height: 320px; display: flex; align-items: flex-end;">
+                <div style="position: absolute; inset: 0;">
+                  <image-slot id="{{ c.slotId }}" shape="rect" placeholder="커버 이미지 — 드래그해서 올리기"></image-slot>
+                </div>
+                <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(22,24,38,0.94) 0%, rgba(22,24,38,0.35) 55%, rgba(22,24,38,0.1) 100%); pointer-events: none;"></div>
+                <div style="position: relative; padding: 28px 28px 24px; display: flex; flex-direction: column; gap: 11.2px; pointer-events: none;">
+                  <div style="font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: {{ pc }};">{{ c.kicker }}</div>
+                  <h1 style="margin: 0; font-size: 34px; font-weight: 500; line-height: 1.15; letter-spacing: -.02em; max-width: 15em; text-wrap: pretty;">{{ c.title }}</h1>
+                  <p style="margin: 0; font-size: 14px; color: #b2b6ca; max-width: 34em; line-height: 1.6;">{{ c.body }}</p>
+                  <div style="display: flex; gap: 8.4px; margin-top: 5.6px; pointer-events: auto;">
+                    <button onClick="{{ goReserve }}" style="border: 1px solid {{ pc }}; background: transparent; color: {{ pc }}; border-radius: 8px; padding: 9px 18px; font-size: 13px;">레슨 예약하기</button>
+                    <button onClick="{{ c.openDetail }}" style="border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 8px; padding: 9px 18px; font-size: 13px;">채널 소개</button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ c.isGrid }}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; gap: 16.8px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 11.2px;">
+                  <h2 style="margin: 0; font-size: 21px; font-weight: 500; letter-spacing: -.01em;">{{ c.title }}</h2>
+                  <div style="font-size: 11.5px; color: #75798c;">{{ c.meta }}</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16.8px;">
+                  <sc-for list="{{ c.items }}" as="it" hint-placeholder-count="4">
+                    <article onClick="{{ it.open }}" style="border: 1px solid #3f424d; border-radius: 8px; background: #232532; overflow: hidden; cursor: pointer; display: flex; flex-direction: column;">
+                      <div style="height: 132px;">
+                        <image-slot id="{{ it.slotId }}" shape="rect" placeholder="{{ it.slotHint }}"></image-slot>
+                      </div>
+                      <div style="padding: 12px; display: flex; flex-direction: column; gap: 5.6px;">
+                        <div style="font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: {{ pc }};">{{ it.kicker }}</div>
+                        <div style="font-size: 14px; font-weight: 500; line-height: 1.35;">{{ it.title }}</div>
+                        <div style="font-size: 12px; color: #9397ab; line-height: 1.55;">{{ it.excerpt }}</div>
+                        <div style="font-size: 10.5px; color: #595d6c; margin-top: 2.8px;">{{ it.meta }}</div>
+                      </div>
+                    </article>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ c.isTrainers }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 16.8px;">
+                <h2 style="margin: 0; font-size: 21px; font-weight: 500; letter-spacing: -.01em;">{{ c.title }}</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16.8px;">
+                  <sc-for list="{{ c.items }}" as="t" hint-placeholder-count="3">
+                    <div onClick="{{ t.open }}" style="border: 1px solid #3f424d; border-radius: 8px; background: #232532; padding: 16.8px; display: flex; flex-direction: column; gap: 11.2px; cursor: pointer;">
+                      <image-slot id="{{ t.slotId }}" style="width: 62px; height: 62px;" shape="circle" placeholder="사진"></image-slot>
+                      <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14.5px; font-weight: 500;">{{ t.title }}</div>
+                        <div style="font-size: 11.5px; color: {{ pc }};">{{ t.kicker }}</div>
+                        <div style="font-size: 12px; color: #9397ab; line-height: 1.55;">{{ t.excerpt }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ c.isCalendar }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 16.8px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 11.2px;">
+                  <h2 style="margin: 0; font-size: 21px; font-weight: 500; letter-spacing: -.01em;">{{ c.title }}</h2>
+                  <div style="font-size: 12px; color: #9397ab;">{{ monthLabel }}</div>
+                </div>
+                <div style="border: 1px solid #3f424d; border-radius: 8px; background: #232532; padding: 16.8px; display: flex; flex-direction: column; gap: 11.2px;">
+                  <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5.6px; font-size: 10.5px; color: #75798c; text-align: center;">
+                    <sc-for list="{{ weekdays }}" as="w" hint-placeholder-count="7">
+                      <div>{{ w.label }}</div>
+                    </sc-for>
+                  </div>
+                  <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5.6px;">
+                    <sc-for list="{{ calendar }}" as="d" hint-placeholder-count="35">
+                      <button onClick="{{ d.pick }}" style="aspect-ratio: 1 / 1; border: {{ d.border }}; border-radius: 6px; background: {{ d.bg }}; color: {{ d.fg }}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12.5px; padding: 0;">
+                        {{ d.label }}
+                        <span style="width: 4px; height: 4px; border-radius: 50%; background: {{ d.dot }};"></span>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 11.2px;">
+                  <div style="font-size: 12.5px; color: #b2b6ca;">{{ slotsHeading }}</div>
+                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8.4px;">
+                    <sc-for list="{{ slots }}" as="s" hint-placeholder-count="6">
+                      <button onClick="{{ s.pick }}" style="text-align: left; border: {{ s.border }}; border-radius: 8px; background: {{ s.bg }}; color: {{ s.fg }}; padding: 11.2px; display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 14px;">{{ s.time }}</span>
+                        <span style="font-size: 11px; color: #75798c;">{{ s.trainer }} · {{ s.left }}</span>
+                      </button>
+                    </sc-for>
+                  </div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 11.2px; align-items: flex-end; border-top: 1px solid rgba(233,233,237,0.08); padding-top: 16.8px;">
+                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #75798c;">예약자명
+                      <input value="{{ resName }}" onChange="{{ setResName }}" style="background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 8px 10px; font-size: 12.5px; width: 150px;" />
+                    </label>
+                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #75798c;">인원
+                      <input value="{{ resQty }}" onChange="{{ setResQty }}" type="number" min="1" style="background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 8px 10px; font-size: 12.5px; width: 78px;" />
+                    </label>
+                    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #75798c; flex: 1 1 180px;">요청 사항
+                      <input value="{{ resNote }}" onChange="{{ setResNote }}" placeholder="예: 어깨 재활 위주로 부탁드립니다" style="background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 8px 10px; font-size: 12.5px; width: 100%;" />
+                    </label>
+                    <button onClick="{{ submitReservation }}" style="border: 1px solid {{ pc }}; background: transparent; color: {{ pc }}; border-radius: 8px; padding: 9px 18px; font-size: 13px;">{{ reserveCtaLabel }}</button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ c.isList }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 11.2px;">
+                <h2 style="margin: 0; font-size: 21px; font-weight: 500; letter-spacing: -.01em;">{{ c.title }}</h2>
+                <sc-for list="{{ c.items }}" as="it" hint-placeholder-count="4">
+                  <div onClick="{{ it.open }}" style="display: flex; align-items: center; gap: 16.8px; padding: 12px 0; border-bottom: 1px solid rgba(233,233,237,0.08); cursor: pointer;">
+                    <div style="font-size: 12.5px; color: {{ pc }}; width: 74px; flex: 0 0 auto;">{{ it.kicker }}</div>
+                    <div style="flex: 1 1 auto; min-width: 0;">
+                      <div style="font-size: 13.5px;">{{ it.title }}</div>
+                      <div style="font-size: 11.5px; color: #75798c;">{{ it.excerpt }}</div>
+                    </div>
+                    <div style="font-size: 11.5px; color: #9397ab;">{{ it.meta }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ c.isProducts }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 16.8px;">
+                <h2 style="margin: 0; font-size: 21px; font-weight: 500; letter-spacing: -.01em;">{{ c.title }}</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16.8px;">
+                  <sc-for list="{{ c.items }}" as="p" hint-placeholder-count="3">
+                    <div style="border: 1px solid #3f424d; border-radius: 8px; background: #232532; overflow: hidden; display: flex; flex-direction: column;">
+                      <div onClick="{{ p.open }}" style="height: 120px; cursor: pointer;">
+                        <image-slot id="{{ p.slotId }}" shape="rect" placeholder="{{ p.slotHint }}"></image-slot>
+                      </div>
+                      <div style="padding: 12px; display: flex; flex-direction: column; gap: 5.6px;">
+                        <div style="font-size: 13.5px;">{{ p.title }}</div>
+                        <div style="font-size: 15px; color: {{ pc }};">{{ p.price }}</div>
+                        <div style="font-size: 11px; color: #75798c;">재고 {{ p.qty }}</div>
+                        <button onClick="{{ p.add }}" style="margin-top: 5.6px; border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 6px; padding: 7px 11.2px; font-size: 12px;">장바구니</button>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ c.isPricing }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 16.8px;">
+                <h2 style="margin: 0; font-size: 21px; font-weight: 500; letter-spacing: -.01em;">{{ c.title }}</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16.8px;">
+                  <sc-for list="{{ c.items }}" as="p" hint-placeholder-count="3">
+                    <div style="border: 1px solid #3f424d; border-radius: 8px; background: #232532; padding: 16.8px; display: flex; flex-direction: column; gap: 8.4px;">
+                      <div style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #75798c;">{{ p.kicker }}</div>
+                      <div style="font-size: 15px;">{{ p.title }}</div>
+                      <div style="font-size: 25px; font-weight: 500; color: {{ pc }}; letter-spacing: -.02em;">{{ p.price }}</div>
+                      <div style="font-size: 12px; color: #9397ab; line-height: 1.6;">{{ p.excerpt }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ c.isBoard }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 16.8px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 11.2px;">
+                  <h2 style="margin: 0; font-size: 21px; font-weight: 500; letter-spacing: -.01em;">{{ c.title }}</h2>
+                  <button onClick="{{ openWrite }}" style="border: 1px solid {{ pc }}; background: transparent; color: {{ pc }}; border-radius: 8px; padding: 7px 14px; font-size: 12.5px;">글쓰기</button>
+                </div>
+                <div style="font-size: 11.5px; color: #75798c;">{{ c.meta }}</div>
+                <sc-for list="{{ boardPosts }}" as="b" hint-placeholder-count="4">
+                  <div onClick="{{ b.open }}" style="border: 1px solid #3f424d; border-radius: 8px; background: #232532; padding: 16.8px; display: flex; flex-direction: column; gap: 8.4px; cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 8.4px;">
+                      <div style="width: 24px; height: 24px; border-radius: 50%; background: #3f424d;"></div>
+                      <div style="font-size: 12px; color: #b2b6ca;">{{ b.author }}</div>
+                      <div style="font-size: 11px; color: #595d6c;">{{ b.ago }}</div>
+                      <div style="flex: 1 1 auto;"></div>
+                      <div style="font-size: 10.5px; padding: 2px 7px; border-radius: 999px; border: 1px solid #3f424d; color: #9397ab;">{{ b.tag }}</div>
+                    </div>
+                    <div style="font-size: 14.5px; font-weight: 500;">{{ b.title }}</div>
+                    <div style="font-size: 12.5px; color: #9397ab; line-height: 1.6;">{{ b.excerpt }}</div>
+                    <div style="display: flex; gap: 16.8px; font-size: 11.5px; color: #75798c; padding-top: 5.6px;">
+                      <span>댓글 {{ b.comments }}</span>
+                      <span>보관 {{ b.saves }}</span>
+                      <button onClick="{{ b.share }}" style="background: transparent; border: none; color: #75798c; font-size: 11.5px; padding: 0;">링크 공유</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ c.isGallery }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 16.8px;">
+                <h2 style="margin: 0; font-size: 21px; font-weight: 500; letter-spacing: -.01em;">{{ c.title }}</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8.4px;">
+                  <sc-for list="{{ c.items }}" as="g" hint-placeholder-count="4">
+                    <div style="aspect-ratio: 1 / 1;">
+                      <image-slot id="{{ g.slotId }}" shape="rounded" radius="8" placeholder="{{ g.slotHint }}"></image-slot>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ c.isInfo }}" hint-placeholder-val="{{ false }}">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16.8px; border: 1px solid #3f424d; border-radius: 8px; background: #232532; padding: 22.4px;">
+                <sc-for list="{{ c.items }}" as="i" hint-placeholder-count="3">
+                  <div style="display: flex; flex-direction: column; gap: 5.6px;">
+                    <div style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #75798c;">{{ i.kicker }}</div>
+                    <div style="font-size: 13.5px; line-height: 1.6; color: #e9e9ed; white-space: pre-line;">{{ i.title }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ c.isFaq }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 11.2px;">
+                <h2 style="margin: 0; font-size: 21px; font-weight: 500; letter-spacing: -.01em;">{{ c.title }}</h2>
+                <sc-for list="{{ c.items }}" as="f" hint-placeholder-count="4">
+                  <div style="border-bottom: 1px solid rgba(233,233,237,0.08); padding: 12px 0; display: flex; flex-direction: column; gap: 5.6px;">
+                    <div style="font-size: 13.5px;">{{ f.title }}</div>
+                    <div style="font-size: 12.5px; color: #9397ab; line-height: 1.6;">{{ f.excerpt }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+          </section>
+        </sc-for>
+
+        <sc-if value="{{ showAddHint }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ openComponents }}" style="border: 1px dashed #5d5294; border-radius: 14px; background: rgba(43,39,65,0.35); color: #b5abfc; padding: 22.4px; font-size: 13px;">+ 이 페이지에 UI 컴포넌트 추가</button>
+        </sc-if>
+      </div>
+    </main>
+
+    <aside style="min-height: 0; overflow-y: auto; background: #1b1d2b; border-left: 1px solid #3f424d; display: {{ dRight }}; flex-direction: column; position: {{ rPos }}; inset: {{ rInset }}; z-index: 30;">
+
+      <sc-if value="{{ showInspector }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 16.8px; padding: 16.8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8.4px;">
+            <div style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #b5abfc;">인스펙터</div>
+            <button onClick="{{ clearSelection }}" style="background: transparent; border: none; color: #75798c; font-size: 16px;">✕</button>
+          </div>
+          <div style="font-size: 15px; font-weight: 500;">{{ selectedLabel }}</div>
+          <div style="display: flex; flex-direction: column; gap: 11.2px;">
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #75798c;">제목
+              <input value="{{ selectedTitle }}" onChange="{{ setSelectedTitle }}" style="background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 8px 10px; font-size: 12.5px;" />
+            </label>
+            <div style="display: flex; flex-direction: column; gap: 5.6px;">
+              <div style="font-size: 11px; color: #75798c;">순서</div>
+              <div style="display: flex; gap: 5.6px;">
+                <button onClick="{{ moveSelectedUp }}" style="flex: 1 1 0; border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 6px; padding: 7px; font-size: 12px;">위로</button>
+                <button onClick="{{ moveSelectedDown }}" style="flex: 1 1 0; border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 6px; padding: 7px; font-size: 12px;">아래로</button>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5.6px;">
+              <div style="font-size: 11px; color: #75798c;">여백</div>
+              <div style="display: flex; gap: 5.6px;">
+                <sc-for list="{{ padOptions }}" as="o" hint-placeholder-count="3">
+                  <button onClick="{{ o.pick }}" style="flex: 1 1 0; border: 1px solid #3f424d; border-radius: 6px; padding: 7px; font-size: 12px; background: {{ o.bg }}; color: {{ o.fg }};">{{ o.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <button onClick="{{ removeSelected }}" style="border: 1px solid #3f424d; background: transparent; color: #9397ab; border-radius: 6px; padding: 8px; font-size: 12px;">컴포넌트 삭제</button>
+          </div>
+          <div style="border-top: 1px solid rgba(233,233,237,0.08); padding-top: 16.8px; display: flex; flex-direction: column; gap: 8.4px;">
+            <button onClick="{{ openChannel }}" style="border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 6px; padding: 8px; font-size: 12px; text-align: left;">채널 설정 열기</button>
+            <button onClick="{{ openPage }}" style="border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 6px; padding: 8px; font-size: 12px; text-align: left;">페이지 설정 열기</button>
+            <button onClick="{{ openComponents }}" style="border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 6px; padding: 8px; font-size: 12px; text-align: left;">컴포넌트 추가</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showDetail }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; animation: riseIn .18s ease both;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8.4px; padding: 11.2px 16.8px; border-bottom: 1px solid #3f424d; position: sticky; top: 0; background: #1b1d2b; z-index: 4;">
+            <div style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #75798c;">{{ detail.kind }}</div>
+            <button onClick="{{ closeDetail }}" style="background: transparent; border: none; color: #9397ab; font-size: 16px;">✕</button>
+          </div>
+          <div style="height: 180px;">
+            <image-slot id="{{ detail.slotId }}" shape="rect" placeholder="{{ detail.slotHint }}"></image-slot>
+          </div>
+          <div style="padding: 16.8px; display: flex; flex-direction: column; gap: 11.2px;">
+            <div style="font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: {{ pc }};">{{ detail.kicker }}</div>
+            <h2 style="margin: 0; font-size: 21px; font-weight: 500; line-height: 1.25; letter-spacing: -.01em;">{{ detail.title }}</h2>
+            <div style="font-size: 11.5px; color: #595d6c;">{{ detail.meta }}</div>
+            <sc-if value="{{ detail.hasPrice }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; gap: 11.2px; border: 1px solid #3f424d; border-radius: 8px; padding: 11.2px; background: #232532;">
+                <div style="font-size: 18px; color: {{ pc }};">{{ detail.price }}</div>
+                <div style="font-size: 11.5px; color: #75798c;">재고 {{ detail.qty }}</div>
+              </div>
+            </sc-if>
+            <p style="margin: 0; font-size: 13.5px; color: #b2b6ca; line-height: 1.75; white-space: pre-line; text-wrap: pretty;">{{ detail.body }}</p>
+            <sc-if value="{{ detail.hasComments }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 11.2px; border-top: 1px solid rgba(233,233,237,0.08); padding-top: 16.8px;">
+                <div style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #75798c;">댓글 {{ detail.commentCount }}</div>
+                <sc-for list="{{ detailComments }}" as="cm" hint-placeholder-count="2">
+                  <div style="display: flex; gap: 8.4px;">
+                    <div style="width: 22px; height: 22px; border-radius: 50%; background: #3f424d; flex: 0 0 auto;"></div>
+                    <div>
+                      <div style="font-size: 12px; color: #b2b6ca;">{{ cm.author }} <span style="color: #595d6c;">· {{ cm.ago }}</span></div>
+                      <div style="font-size: 12.5px; color: #9397ab; line-height: 1.55;">{{ cm.text }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+                <div style="display: flex; gap: 5.6px;">
+                  <input value="{{ commentDraft }}" onChange="{{ setCommentDraft }}" placeholder="댓글 쓰기" style="flex: 1 1 auto; background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 8px 10px; font-size: 12.5px;" />
+                  <button onClick="{{ submitComment }}" style="border: 1px solid {{ pc }}; background: transparent; color: {{ pc }}; border-radius: 6px; padding: 8px 12px; font-size: 12px;">등록</button>
+                </div>
+              </div>
+            </sc-if>
+            <div style="display: flex; gap: 5.6px; flex-wrap: wrap; border-top: 1px solid rgba(233,233,237,0.08); padding-top: 16.8px;">
+              <button onClick="{{ archiveDetail }}" style="border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 6px; padding: 8px 12px; font-size: 12px;">보관</button>
+              <button onClick="{{ shareDetail }}" style="border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 6px; padding: 8px 12px; font-size: 12px;">링크 공유</button>
+              <sc-if value="{{ detail.canReserve }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ goReserve }}" style="border: 1px solid {{ pc }}; background: transparent; color: {{ pc }}; border-radius: 6px; padding: 8px 12px; font-size: 12px;">예약하기</button>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showRightEmpty }}" hint-placeholder-val="{{ true }}">
+        <div style="padding: 22.4px; display: flex; flex-direction: column; gap: 11.2px;">
+          <div style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #75798c;">상세 보기</div>
+          <div style="font-size: 12.5px; color: #595d6c; line-height: 1.7;">가운데 채널에서 콘텐츠를 누르면 이 자리에 상세가 열립니다. 모바일 폭에서는 전체 화면으로 올라옵니다.</div>
+          <div style="margin-top: 11.2px; display: flex; flex-direction: column; gap: 8.4px;">
+            <sc-for list="{{ rightSuggestions }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.open }}" style="text-align: left; border: 1px solid #3f424d; background: #232532; color: #b2b6ca; border-radius: 8px; padding: 11.2px; font-size: 12.5px;">{{ s.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </aside>
+
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 34; background: rgba(27,29,43,0.96); backdrop-filter: blur(12px); border-top: 1px solid #3f424d; display: flex; align-items: stretch; padding: 5.6px 8.4px 11.2px;">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+          <button onClick="{{ t.go }}" style="flex: 1 1 0; background: transparent; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8.4px 0; color: {{ t.fg }}; font-size: 10.5px;">
+            <span style="width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid currentColor; opacity: {{ t.iconOpacity }};"></span>
+            {{ t.label }}
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showFab }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ toggleFab }}" style="position: absolute; right: 22.4px; bottom: {{ fabBottom }}; z-index: 36; width: 52px; height: 52px; border-radius: 50%; border: 1px solid #968ae0; background: #2b2741; color: #d2cefd; font-size: 20px; box-shadow: 0 16px 40px rgba(0,0,0,0.65);">{{ fabIcon }}</button>
+    </sc-if>
+
+    <sc-if value="{{ showEditBar }}" hint-placeholder-val="{{ false }}">
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); bottom: {{ barBottom }}; z-index: 35; display: flex; gap: 5.6px; padding: 8.4px; border: 1px solid #5d5294; border-radius: 999px; background: rgba(35,37,50,0.96); backdrop-filter: blur(12px); box-shadow: 0 16px 40px rgba(0,0,0,0.65); max-width: calc(100% - 44px); overflow-x: auto; animation: riseIn .16s ease both;">
+        <sc-for list="{{ editActions }}" as="a" hint-placeholder-count="4">
+          <button onClick="{{ a.go }}" style="flex: 0 0 auto; border: none; border-radius: 999px; padding: 8.4px 14px; font-size: 12.5px; background: {{ a.bg }}; color: {{ a.fg }};">{{ a.label }}</button>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSheet }}" style="position: fixed; inset: 0; z-index: 50; background: rgba(9,10,16,0.6); animation: fadeIn .14s ease both; display: flex; align-items: flex-end; justify-content: center;">
+      <div onClick="{{ stop }}" style="width: 100%; max-width: 560px; max-height: 82vh; overflow-y: auto; background: #232532; border: 1px solid #595d6c; border-bottom: none; border-radius: 14px 14px 0 0; box-shadow: 0 16px 40px rgba(0,0,0,0.65); animation: sheetUp .22s cubic-bezier(.2,.8,.2,1) both; padding: 16.8px 16.8px 28px;">
+        <div style="display: flex; justify-content: center; padding-bottom: 11.2px;">
+          <div style="width: 38px; height: 4px; border-radius: 999px; background: #3f424d;"></div>
+        </div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 11.2px; padding-bottom: 16.8px;">
+          <div style="font-size: 16px; font-weight: 500;">{{ sheetTitle }}</div>
+          <button onClick="{{ closeSheet }}" style="background: transparent; border: none; color: #75798c; font-size: 12.5px;">닫기</button>
+        </div>
+
+        <sc-if value="{{ sheetIsComponents }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8.4px;">
+            <sc-for list="{{ componentLibrary }}" as="l" hint-placeholder-count="10">
+              <button onClick="{{ l.add }}" style="text-align: left; border: 1px solid #3f424d; background: #161826; color: #e9e9ed; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-size: 13px;">{{ l.label }}</span>
+                <span style="font-size: 11px; color: #75798c; line-height: 1.45;">{{ l.hint }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sheetIsChannel }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 16.8px;">
+            <label style="display: flex; flex-direction: column; gap: 5.6px; font-size: 11px; color: #75798c;">채널명 (서브도메인)
+              <div style="display: flex; align-items: center; gap: 5.6px;">
+                <input value="{{ slugDraft }}" onChange="{{ setSlug }}" style="flex: 1 1 auto; background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 9px 10px; font-size: 13px;" />
+                <span style="font-size: 12px; color: #75798c;">.mysite.co.kr</span>
+              </div>
+              <span style="font-size: 11.5px; color: {{ slugColor }};">{{ slugMessage }}</span>
+            </label>
+
+            <div style="display: flex; flex-direction: column; gap: 8.4px;">
+              <div style="font-size: 11px; color: #75798c;">채널 표시 이름</div>
+              <input value="{{ nameDraft }}" onChange="{{ setName }}" style="background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 9px 10px; font-size: 13px;" />
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8.4px;">
+              <div style="font-size: 11px; color: #75798c;">채널 대표 색 (HEX)</div>
+              <div style="display: flex; gap: 8.4px; align-items: center;">
+                <div style="width: 34px; height: 34px; border-radius: 6px; border: 1px solid #3f424d; background: {{ pc }};"></div>
+                <input value="{{ pcDraft }}" onChange="{{ setPc }}" style="flex: 1 1 auto; background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 9px 10px; font-size: 13px; font-family: ui-monospace, monospace;" />
+              </div>
+              <div style="display: flex; gap: 5.6px; flex-wrap: wrap;">
+                <sc-for list="{{ swatches }}" as="s" hint-placeholder-count="6">
+                  <button onClick="{{ s.pick }}" title="{{ s.hex }}" style="width: 26px; height: 26px; border-radius: 6px; border: {{ s.border }}; background: {{ s.hex }};"></button>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8.4px;">
+              <div style="font-size: 11px; color: #75798c;">메뉴바 스타일</div>
+              <div style="display: flex; gap: 5.6px;">
+                <sc-for list="{{ menuOptions }}" as="m" hint-placeholder-count="3">
+                  <button onClick="{{ m.pick }}" style="flex: 1 1 0; border: 1px solid #3f424d; border-radius: 6px; padding: 9px; font-size: 12px; background: {{ m.bg }}; color: {{ m.fg }};">{{ m.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8.4px;">
+              <div style="font-size: 11px; color: #75798c;">채널 아이콘 (내 기기에서 선택)</div>
+              <div style="display: flex; gap: 8.4px; align-items: center;">
+                <image-slot id="channel-icon-picker" style="width: 46px; height: 46px;" shape="rounded" radius="8" placeholder="ICON"></image-slot>
+                <div style="font-size: 11.5px; color: #595d6c; line-height: 1.5;">이미지를 끌어다 놓거나 눌러서 선택합니다.</div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8.4px;">
+              <div style="font-size: 11px; color: #75798c;">로딩 애니메이션</div>
+              <div style="display: flex; gap: 5.6px;">
+                <sc-for list="{{ loaderOptions }}" as="l" hint-placeholder-count="3">
+                  <button onClick="{{ l.pick }}" style="flex: 1 1 0; border: 1px solid #3f424d; border-radius: 6px; padding: 9px; font-size: 12px; background: {{ l.bg }}; color: {{ l.fg }};">{{ l.label }}</button>
+                </sc-for>
+              </div>
+              <button onClick="{{ previewLoader }}" style="border: 1px solid #968ae0; background: transparent; color: #b5abfc; border-radius: 6px; padding: 8px; font-size: 12px;">미리보기</button>
+            </div>
+
+            <button onClick="{{ saveChannel }}" style="border: 1px solid {{ pc }}; background: transparent; color: {{ pc }}; border-radius: 8px; padding: 11.2px; font-size: 13px;">저장</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sheetIsPage }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 16.8px;">
+            <label style="display: flex; flex-direction: column; gap: 5.6px; font-size: 11px; color: #75798c;">페이지 이름
+              <input value="{{ pageNameDraft }}" onChange="{{ setPageName }}" style="background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 9px 10px; font-size: 13px;" />
+              <span style="font-size: 11.5px; color: {{ pageNameColor }};">{{ pageNameMessage }}</span>
+            </label>
+
+            <div style="display: flex; flex-direction: column; gap: 8.4px;">
+              <div style="font-size: 11px; color: #75798c;">페이지 역할</div>
+              <div style="display: flex; gap: 5.6px;">
+                <sc-for list="{{ roleOptions }}" as="r" hint-placeholder-count="3">
+                  <button onClick="{{ r.pick }}" style="flex: 1 1 0; border: 1px solid #3f424d; border-radius: 6px; padding: 9px; font-size: 12px; background: {{ r.bg }}; color: {{ r.fg }};">{{ r.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8.4px;">
+              <div style="font-size: 11px; color: #75798c;">페이지 순서</div>
+              <sc-for list="{{ pageOrder }}" as="p" hint-placeholder-count="5">
+                <div style="display: flex; align-items: center; gap: 8.4px; padding: 8.4px; border: 1px solid #3f424d; border-radius: 6px; background: #161826;">
+                  <div style="flex: 1 1 auto; font-size: 12.5px; color: {{ p.fg }};">{{ p.label }} <span style="color: #595d6c; font-size: 11px;">{{ p.role }}</span></div>
+                  <button onClick="{{ p.up }}" style="border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 5px; padding: 3px 8px; font-size: 11px;">↑</button>
+                  <button onClick="{{ p.down }}" style="border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 5px; padding: 3px 8px; font-size: 11px;">↓</button>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8.4px;">
+              <div style="font-size: 11px; color: #75798c;">페이지 배경 이미지 (기본값은 대표 색 기반)</div>
+              <image-slot id="page-bg-picker" style="width: 100%; height: 92px;" shape="rounded" radius="8" placeholder="배경 이미지 놓기 — 비우면 대표 색 그라디언트"></image-slot>
+            </div>
+
+            <div style="display: flex; gap: 5.6px;">
+              <button onClick="{{ addPage }}" style="flex: 1 1 0; border: 1px solid #3f424d; background: transparent; color: #b2b6ca; border-radius: 8px; padding: 11.2px; font-size: 12.5px;">+ 새 페이지</button>
+              <button onClick="{{ savePage }}" style="flex: 1 1 0; border: 1px solid {{ pc }}; background: transparent; color: {{ pc }}; border-radius: 8px; padding: 11.2px; font-size: 13px;">저장</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ sheetIsWrite }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 11.2px;">
+            <div style="display: flex; gap: 5.6px;">
+              <sc-for list="{{ postTypes }}" as="t" hint-placeholder-count="3">
+                <button onClick="{{ t.pick }}" style="flex: 1 1 0; border: 1px solid #3f424d; border-radius: 6px; padding: 8px; font-size: 12px; background: {{ t.bg }}; color: {{ t.fg }};">{{ t.label }}</button>
+              </sc-for>
+            </div>
+            <input value="{{ postTitle }}" onChange="{{ setPostTitle }}" placeholder="제목" style="background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 11.2px; font-size: 14px;" />
+            <textarea value="{{ postBody }}" onChange="{{ setPostBody }}" placeholder="내용을 쓰세요" rows="5" style="background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 11.2px; font-size: 13px; line-height: 1.65; resize: vertical;"></textarea>
+            <sc-if value="{{ postIsProduct }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; gap: 8.4px;">
+                <input value="{{ postPrice }}" onChange="{{ setPostPrice }}" placeholder="가격" style="flex: 1 1 0; background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 9px 10px; font-size: 12.5px;" />
+                <input value="{{ postQty }}" onChange="{{ setPostQty }}" placeholder="수량" style="width: 96px; background: #161826; border: 1px solid #3f424d; border-radius: 6px; color: #e9e9ed; padding: 9px 10px; font-size: 12.5px;" />
+              </div>
+            </sc-if>
+            <image-slot id="post-image-picker" style="width: 100%; height: 110px;" shape="rounded" radius="8" placeholder="이미지 놓기"></image-slot>
+            <button onClick="{{ submitPost }}" style="border: 1px solid {{ pc }}; background: transparent; color: {{ pc }}; border-radius: 8px; padding: 11.2px; font-size: 13px;">게시</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ loaderVisible }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; z-index: 60; background: #161826; display: grid; place-items: center; animation: fadeIn .12s ease both;">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 16.8px;">
+        <sc-if value="{{ loaderIsSpin }}" hint-placeholder-val="{{ true }}">
+          <div style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #3f424d; border-top-color: {{ pc }}; animation: spin .8s linear infinite;"></div>
+        </sc-if>
+        <sc-if value="{{ loaderIsPulse }}" hint-placeholder-val="{{ false }}">
+          <div style="position: relative; width: 40px; height: 40px; display: grid; place-items: center;">
+            <div style="position: absolute; inset: 0; border-radius: 50%; border: 2px solid {{ pc }}; animation: pulseRing 1.4s ease-out infinite;"></div>
+            <div style="width: 10px; height: 10px; border-radius: 50%; background: {{ pc }};"></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ loaderIsBar }}" hint-placeholder-val="{{ false }}">
+          <div style="width: 140px; height: 3px; border-radius: 999px; background: #3f424d; overflow: hidden;">
+            <div style="width: 40%; height: 100%; background: {{ pc }}; animation: sheetUp 1s ease-in-out infinite alternate;"></div>
+          </div>
+        </sc-if>
+        <div style="font-size: 12px; letter-spacing: .1em; color: #75798c;">{{ channelName }}</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toastVisible }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; left: 50%; transform: translateX(-50%); top: 68px; z-index: 70; background: #2b2741; border: 1px solid #5d5294; color: #e7e5fe; border-radius: 999px; padding: 9px 18px; font-size: 12.5px; box-shadow: 0 16px 40px rgba(0,0,0,0.65); animation: riseIn .16s ease both;">{{ toast }}</div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;channelName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;스카이짐&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;채널&quot;},&quot;channelSlug&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;skygym&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;채널&quot;},&quot;primaryColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#c9ced6&quot;,&quot;options&quot;:[&quot;#c9ced6&quot;,&quot;#a8b0bd&quot;,&quot;#c9b48a&quot;,&quot;#8aa7c9&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;채널&quot;},&quot;menuStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;top&quot;,&quot;top-pinned&quot;,&quot;button&quot;],&quot;default&quot;:&quot;top-pinned&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;채널&quot;},&quot;startMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;visitor&quot;,&quot;owner&quot;],&quot;default&quot;:&quot;visitor&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;모드&quot;},&quot;editStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sheet&quot;,&quot;inspector&quot;],&quot;default&quot;:&quot;sheet&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;모드&quot;},&quot;forceMobile&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;모드&quot;}}">
+const SILVER = '#c9ced6';
+
+const POSTS = [
+  { id: 'p1', kicker: '프로그램', title: '1:1 퍼스널 트레이닝 60일', excerpt: '주 3회 · 체성분 측정과 식단 피드백 포함', meta: '2026.08.01 · 조회 1,284', body: '첫 상담에서 체성분과 관절 가동범위를 측정하고, 8주 단위로 목표를 다시 잡습니다.\n\n주 3회 세션은 근력 2회 + 컨디셔닝 1회로 구성되며, 세션마다 다음 주 식단 피드백이 앱으로 전달됩니다. 담당 트레이너는 상담 결과에 따라 배정됩니다.', kind: '콘텐츠', canReserve: true },
+  { id: 'p2', kicker: '클래스', title: '소그룹 기능성 트레이닝', excerpt: '최대 4인 · 케틀벨과 밴드 중심', meta: '2026.07.28 · 조회 902', body: '4인 이하로 진행하는 45분 클래스입니다. 스쿼트·힌지·푸시·풀 네 가지 패턴을 매 주 조합해 구성합니다.\n\n초급/중급 트랙이 따로 있어, 처음 오신 분은 초급 트랙에서 3주간 패턴을 익힌 뒤 이동합니다.', kind: '콘텐츠', canReserve: true },
+  { id: 'p3', kicker: '클래스', title: '필라테스 리포머 1:2', excerpt: '코어 안정화와 호흡 재교육', meta: '2026.07.22 · 조회 741', body: '리포머 두 대를 쓰는 1:2 수업입니다. 호흡과 흉곽 정렬을 먼저 잡고 사지 움직임으로 넘어갑니다.\n\n허리·목 통증 이력이 있는 분은 첫 회차에 별도 평가를 진행합니다.', kind: '콘텐츠', canReserve: true },
+  { id: 'p4', kicker: '노트', title: '체형 교정, 무엇을 먼저 봐야 하나', excerpt: '거울보다 먼저 확인할 세 가지', meta: '2026.07.15 · 조회 2,013', body: '체형은 자세의 결과가 아니라 습관의 총합입니다. 관절 가동범위, 좌우 근력 차이, 호흡 패턴 세 가지를 먼저 확인합니다.\n\n교정 운동은 하루 10분이면 충분하지만, 6주 이상 이어져야 변화가 남습니다.', kind: '콘텐츠', canReserve: false }
+];
+
+const TRAINERS = [
+  { id: 't1', title: '김도훈', kicker: '근력 · 체력', excerpt: '생활체육지도사 2급 · 경력 9년', meta: '월·수·금 06:00–15:00', body: '파워리프팅 선수 출신으로, 큰 동작의 기본기를 다듬는 데 강합니다. 첫 4주는 무게보다 자세 반복에 시간을 씁니다.', kind: '트레이너', canReserve: true },
+  { id: 't2', title: '박서연', kicker: '필라테스', excerpt: '리포머 · 재활 필라테스 · 경력 7년', meta: '화·목·토 10:00–20:00', body: '호흡과 흉곽 정렬에서 시작하는 수업을 합니다. 출산 후 회복, 장시간 좌식 근무자 케이스를 주로 봅니다.', kind: '트레이너', canReserve: true },
+  { id: 't3', title: '이준호', kicker: '재활 · 교정', excerpt: '물리치료사 · 경력 11년', meta: '월–금 13:00–22:00', body: '통증 이력이 있는 회원의 첫 평가를 담당합니다. 필요한 경우 협력 정형외과와 소견을 공유합니다.', kind: '트레이너', canReserve: true }
+];
+
+const PRODUCTS = [
+  { id: 'g1', title: 'WPI 프로틴 1kg', price: '48,000원', qty: 24, kicker: '보충제', excerpt: '초코 · 플레인 2종', meta: '스토어', body: '유당을 걸러낸 분리유청 단백질입니다. 초코와 플레인 두 가지 맛으로 매장 수령 또는 택배 발송을 고를 수 있습니다.', kind: '상품' },
+  { id: 'g2', title: '리프팅 스트랩', price: '19,000원', qty: 8, kicker: '장비', excerpt: '면 소재 · 프리사이즈', meta: '스토어', body: '데드리프트와 로우에서 그립이 먼저 풀리는 분께 권합니다. 매장에서 착용법을 함께 알려드립니다.', kind: '상품' },
+  { id: 'g3', title: '개인 락커 3개월', price: '90,000원', qty: 3, kicker: '이용권', excerpt: '2층 · 잔여 3자리', meta: '스토어', body: '2층 남녀 구분 락커룸의 개인 락커 3개월 이용권입니다. 잔여 자리가 적어 선입금 순으로 배정합니다.', kind: '상품' }
+];
+
+const PLANS = [
+  { id: 'pl1', kicker: '체험', title: '1회 체험 세션', price: '35,000원', excerpt: '체성분 측정 + 50분 세션. 등록 시 전액 차감됩니다.' },
+  { id: 'pl2', kicker: '가장 많이 선택', title: 'PT 20회', price: '1,200,000원', excerpt: '회당 60,000원. 유효기간 6개월, 1회 양도 가능.' },
+  { id: 'pl3', kicker: '정기', title: '월 회원권', price: '90,000원', excerpt: '헬스장 자유 이용 + 그룹 클래스 주 2회 포함.' }
+];
+
+const BOARD = [
+  { id: 'b1', author: '민경', ago: '2시간 전', tag: '후기', title: '8주 만에 스쿼트 60 → 85kg', excerpt: '기록만 보면 별거 아닌데, 무릎이 안 아픈 게 제일 큽니다.', comments: 6, saves: 12, body: '처음엔 바만 들고 4주를 보냈습니다. 도훈 트레이너가 무게를 안 올려줘서 답답했는데, 지금 보면 그 4주가 전부였습니다.\n\n지금은 주 3회 중 2회는 혼자 와서 프로그램대로 하고, 1회만 세션으로 봅니다.', kind: '게시글' },
+  { id: 'b2', author: '해든', ago: '어제', tag: '질문', title: '토요일 아침 클래스 자리 나면 알림 오나요?', excerpt: '대기 걸어두면 문자로 오는지 궁금합니다.', comments: 3, saves: 2, body: '토요일 10시 소그룹이 계속 만석이라 대기를 걸었습니다. 자리가 나면 알림이 오는 구조인지, 아니면 직접 확인해야 하는지 알려주세요.', kind: '게시글' },
+  { id: 'b3', author: '지우', ago: '3일 전', tag: '자유', title: '샤워실 온수 시간대별로 다른가요', excerpt: '오전 7시쯤 물이 미지근했습니다.', comments: 8, saves: 1, body: '오전 7시 전후로 온수가 약한 날이 있었습니다. 다른 분들도 그런지 궁금합니다.', kind: '게시글' }
+];
+
+const COMMENTS = [
+  { author: '서연 트레이너', ago: '1시간 전', text: '대기 순번이 오면 알림 센터와 문자로 함께 발송됩니다.' },
+  { author: '민경', ago: '40분 전', text: '저도 지난주에 알림 받고 들어갔어요.' }
+];
+
+const FAQ = [
+  { id: 'f1', title: '주차는 가능한가요?', excerpt: '건물 지하 2시간 무료입니다. 데스크에서 차량 번호를 등록해 주세요.' },
+  { id: 'f2', title: '예약 취소는 언제까지 되나요?', excerpt: '세션 4시간 전까지 무료 취소, 이후에는 1회 차감됩니다.' },
+  { id: 'f3', title: '운동복 대여가 있나요?', excerpt: '상하의 세트 2,000원, 수건은 무료 제공입니다.' },
+  { id: 'f4', title: '휴회 신청이 가능한가요?', excerpt: '월 회원권은 최대 30일까지 1회 휴회할 수 있습니다.' }
+];
+
+const INFO = [
+  { id: 'i1', kicker: '위치', title: '서울 강남구 도산대로 148\n3층 (신논현역 4번 출구 도보 6분)' },
+  { id: 'i2', kicker: '영업시간', title: '평일 06:00 – 23:00\n토 08:00 – 18:00 / 일 휴무' },
+  { id: 'i3', kicker: '문의', title: '02-540-1188\nhello@skygym.example' }
+];
+
+const GALLERY = [
+  { id: 'ga1', slotId: 'gal-1', slotHint: '프리웨이트 존' },
+  { id: 'ga2', slotId: 'gal-2', slotHint: '리포머 룸' },
+  { id: 'ga3', slotId: 'gal-3', slotHint: '컨디셔닝 존' },
+  { id: 'ga4', slotId: 'gal-4', slotHint: '라운지' }
+];
+
+const LIBRARY = [
+  { type: 'hero', label: '히어로 / 커버', hint: '큰 이미지와 문구' },
+  { type: 'grid', label: '콘텐츠 그리드', hint: '블로그·인스타형 포스트' },
+  { type: 'list', label: '콘텐츠 리스트', hint: '한 줄씩 쌓는 목록' },
+  { type: 'trainers', label: '트레이너 소개', hint: '인물 카드' },
+  { type: 'calendar', label: '예약 · 캘린더', hint: '날짜 → 시간 선택' },
+  { type: 'products', label: '상품 리스트', hint: '가격 · 수량' },
+  { type: 'pricing', label: '요금제', hint: '플랜 비교' },
+  { type: 'board', label: '게시판', hint: '구독자 글쓰기 · 댓글' },
+  { type: 'gallery', label: '갤러리', hint: '이미지 4~12장' },
+  { type: 'info', label: '위치 · 영업시간', hint: '주소와 시간' },
+  { type: 'faq', label: 'FAQ', hint: '질문과 답' }
+];
+
+const TYPE_LABEL = { hero: '히어로', grid: '콘텐츠 그리드', list: '콘텐츠 리스트', trainers: '트레이너 소개', calendar: '예약 · 캘린더', products: '상품 리스트', pricing: '요금제', board: '게시판', gallery: '갤러리', info: '위치 · 영업시간', faq: 'FAQ' };
+
+const DEFAULT_TITLE = { hero: '몸을 바꾸는 가장 확실한 60일', grid: '레슨과 프로그램', list: '공지와 소식', trainers: '트레이너', calendar: '레슨 예약', products: '스토어', pricing: '요금제', board: '회원 게시판', gallery: '공간', info: '오시는 길', faq: '자주 묻는 질문' };
+
+let uid = 100;
+const nid = () => 'c' + (++uid);
+
+class Component extends DCLogic {
+  state = {
+    mode: null,
+    editing: false,
+    editStyle: null,
+    fabOpen: true,
+    page: 'home',
+    mobileTab: 'home',
+    sheet: null,
+    selected: null,
+    detailId: null,
+    subscribed: false,
+    pc: null,
+    slug: null,
+    name: null,
+    menuStyle: null,
+    loader: 'spin',
+    loaderVisible: false,
+    toast: null,
+    resDate: 12,
+    resSlot: null,
+    resName: '한지민',
+    resQty: 1,
+    resNote: '',
+    commentDraft: '',
+    postType: 'text',
+    postTitle: '',
+    postBody: '',
+    postPrice: '',
+    postQty: '',
+    pageNameDraft: '',
+    archiveCat: 'all',
+    pad: 'md',
+    vw: typeof window !== 'undefined' ? window.innerWidth : 1280,
+    pages: [
+      { id: 'home', label: '홈', role: 'home', comps: [
+        { id: 'c1', type: 'hero' }, { id: 'c2', type: 'grid' }, { id: 'c3', type: 'trainers' }, { id: 'c4', type: 'pricing' }, { id: 'c5', type: 'gallery' }, { id: 'c6', type: 'info' }
+      ] },
+      { id: 'reserve', label: '예약', role: '', comps: [{ id: 'c7', type: 'calendar' }, { id: 'c8', type: 'list' }] },
+      { id: 'classes', label: '레슨', role: 'main', comps: [{ id: 'c9', type: 'grid' }, { id: 'c10', type: 'faq' }] },
+      { id: 'board', label: '게시판', role: '', comps: [{ id: 'c11', type: 'board' }] },
+      { id: 'store', label: '스토어', role: '', comps: [{ id: 'c12', type: 'products' }] }
+    ],
+    boardPosts: BOARD,
+    comments: COMMENTS,
+    slugDraft: null,
+    nameDraft: null,
+    pcDraft: null
+  };
+
+  componentDidMount() {
+    this._onResize = () => this.setState({ vw: window.innerWidth });
+    window.addEventListener('resize', this._onResize);
+    this._onResize();
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._onResize);
+    clearTimeout(this._t);
+    clearTimeout(this._l);
+  }
+
+  get pc() { return this.state.pc ?? this.props.primaryColor ?? SILVER; }
+  get mode() { return this.state.mode ?? this.props.startMode ?? 'visitor'; }
+  get editStyle() { return this.state.editStyle ?? this.props.editStyle ?? 'sheet'; }
+  get channelName() { return this.state.name ?? this.props.channelName ?? '스카이짐'; }
+  get slug() { return this.state.slug ?? this.props.channelSlug ?? 'skygym'; }
+  get menuStyle() { return this.state.menuStyle ?? this.props.menuStyle ?? 'top-pinned'; }
+  get isMobile() { return this.props.forceMobile === true || this.state.vw < 900; }
+
+  toast(msg) {
+    clearTimeout(this._t);
+    this.setState({ toast: msg });
+    this._t = setTimeout(() => this.setState({ toast: null }), 2400);
+  }
+
+  currentPage() {
+    return this.state.pages.find(p => p.id === this.state.page) || this.state.pages[0];
+  }
+
+  itemsFor(type) {
+    if (type === 'grid') return POSTS;
+    if (type === 'list') return POSTS.slice(0, 3);
+    if (type === 'trainers') return TRAINERS;
+    if (type === 'products') return PRODUCTS;
+    if (type === 'pricing') return PLANS;
+    if (type === 'gallery') return GALLERY;
+    if (type === 'info') return INFO;
+    if (type === 'faq') return FAQ;
+    return [];
+  }
+
+  findRecord(id) {
+    return [...POSTS, ...TRAINERS, ...PRODUCTS, ...this.state.boardPosts].find(r => r.id === id) || null;
+  }
+
+  openDetail = (id) => {
+    this.setState({ detailId: id, selected: null });
+  };
+
+  moveComp(compId, dir) {
+    const pages = this.state.pages.map(p => {
+      if (p.id !== this.state.page) return p;
+      const comps = p.comps.slice();
+      const i = comps.findIndex(c => c.id === compId);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= comps.length) return p;
+      const tmp = comps[i]; comps[i] = comps[j]; comps[j] = tmp;
+      return { ...p, comps };
+    });
+    this.setState({ pages });
+  }
+
+  removeComp(compId) {
+    const pages = this.state.pages.map(p => p.id === this.state.page ? { ...p, comps: p.comps.filter(c => c.id !== compId) } : p);
+    this.setState({ pages, selected: null });
+    this.toast('컴포넌트를 삭제했습니다');
+  }
+
+  setCompTitle(compId, title) {
+    const pages = this.state.pages.map(p => p.id === this.state.page ? { ...p, comps: p.comps.map(c => c.id === compId ? { ...c, title } : c) } : p);
+    this.setState({ pages });
+  }
+
+  addComp = (type) => {
+    const pages = this.state.pages.map(p => p.id === this.state.page ? { ...p, comps: [...p.comps, { id: nid(), type }] } : p);
+    this.setState({ pages, sheet: null });
+    this.toast(TYPE_LABEL[type] + ' 컴포넌트를 추가했습니다');
+  };
+
+  movePage(pageId, dir) {
+    const pages = this.state.pages.slice();
+    const i = pages.findIndex(p => p.id === pageId);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= pages.length) return;
+    const tmp = pages[i]; pages[i] = pages[j]; pages[j] = tmp;
+    this.setState({ pages });
+  }
+
+  renderVals() {
+    const st = this.state;
+    const pc = this.pc;
+    const mode = this.mode;
+    const isOwner = mode === 'owner';
+    const isMobile = this.isMobile;
+    const editing = isOwner && st.editing;
+    const editStyle = this.editStyle;
+    const page = this.currentPage();
+    const detail = st.detailId ? this.findRecord(st.detailId) : null;
+    const inspectorMode = editStyle === 'inspector' && !isMobile;
+    const showInspector = editing && inspectorMode && !!st.selected;
+    const showDetail = !!detail && !showInspector;
+
+    const off = 6;
+    const daysInMonth = 31;
+    const calendar = [];
+    for (let i = 0; i < off; i++) calendar.push({ label: '', bg: 'transparent', fg: 'transparent', border: '1px solid transparent', dot: 'transparent', pick: () => {} });
+    for (let d = 1; d <= daysInMonth; d++) {
+      const closed = ((d + 6) % 7) === 0;
+      const past = d < 6;
+      const sel = st.resDate === d;
+      const day = d;
+      calendar.push({
+        label: String(d),
+        bg: sel ? '#2b2741' : (closed || past) ? 'transparent' : '#161826',
+        fg: sel ? '#e7e5fe' : (closed || past) ? '#3f424d' : '#b2b6ca',
+        border: sel ? '1px solid ' + pc : '1px solid #3f424d',
+        dot: (closed || past) ? 'transparent' : (sel ? pc : '#5d5294'),
+        pick: () => { if (!closed && !past) this.setState({ resDate: day, resSlot: null }); }
+      });
+    }
+
+    const slotTimes = ['07:00', '09:00', '11:00', '14:00', '18:00', '20:00'];
+    const slotTrainers = ['김도훈', '박서연', '이준호', '김도훈', '박서연', '이준호'];
+    const slots = slotTimes.map((t, i) => {
+      const left = (st.resDate + i) % 4;
+      const full = left === 0;
+      const sel = st.resSlot === t;
+      return {
+        time: t,
+        trainer: slotTrainers[i],
+        left: full ? '마감' : '잔여 ' + left,
+        bg: sel ? '#2b2741' : full ? 'transparent' : '#232532',
+        fg: full ? '#595d6c' : '#e9e9ed',
+        border: sel ? '1px solid ' + pc : '1px solid #3f424d',
+        pick: () => { if (!full) this.setState({ resSlot: t }); }
+      };
+    });
+
+    const comps = page.comps.map(c => {
+      const selected = editing && st.selected === c.id;
+      return {
+        key: c.id,
+        typeLabel: TYPE_LABEL[c.type],
+        title: c.title ?? DEFAULT_TITLE[c.type],
+        kicker: c.type === 'hero' ? this.channelName.toUpperCase() : '',
+        body: c.type === 'hero' ? '강남 도산대로, 4명의 트레이너와 12개 프로그램. 첫 상담은 무료입니다.' : '',
+        meta: c.type === 'grid' ? POSTS.length + '개의 글' : (c.type === 'board' ? '이 채널을 구독한 사람은 누구나 글을 쓸 수 있습니다' : ''),
+        slotId: 'hero-' + c.id,
+        outline: selected ? '2px solid ' + '#968ae0' : 'none',
+        cursor: editing ? 'pointer' : 'default',
+        showTools: editing,
+        select: () => { if (editing) this.setState({ selected: c.id, detailId: null, sheet: inspectorMode ? null : st.sheet }); },
+        up: () => this.moveComp(c.id, -1),
+        down: () => this.moveComp(c.id, 1),
+        remove: () => this.removeComp(c.id),
+        openDetail: () => this.openDetail('p1'),
+        isHero: c.type === 'hero',
+        isGrid: c.type === 'grid',
+        isList: c.type === 'list',
+        isTrainers: c.type === 'trainers',
+        isCalendar: c.type === 'calendar',
+        isProducts: c.type === 'products',
+        isPricing: c.type === 'pricing',
+        isBoard: c.type === 'board',
+        isGallery: c.type === 'gallery',
+        isInfo: c.type === 'info',
+        isFaq: c.type === 'faq',
+        items: this.itemsFor(c.type).map((it, i) => ({
+          ...it,
+          slotId: c.id + '-' + (it.id || i),
+          slotHint: it.slotHint || (it.title ? it.title : '이미지'),
+          open: () => this.openDetail(it.id),
+          add: () => this.toast(it.title + '을 장바구니에 담았습니다')
+        }))
+      };
+    });
+
+    const selectedComp = page.comps.find(c => c.id === st.selected);
+    const slugOk = /^[a-z0-9-]{3,20}$/.test(st.slugDraft ?? this.slug);
+    const pageNameDraft = st.pageNameDraft || page.label;
+    const pageNameOk = pageNameDraft.length >= 1 && !this.state.pages.some(p => p.id !== page.id && p.label === pageNameDraft);
+
+    const seg = (on) => ({ bg: on ? '#2b2741' : 'transparent', fg: on ? '#e7e5fe' : '#9397ab' });
+
+    const navPages = st.pages.map(p => {
+      const on = p.id === st.page;
+      const btnStyle = this.menuStyle === 'button';
+      return {
+        key: p.id,
+        label: p.label,
+        bg: on ? (btnStyle ? '#2b2741' : 'transparent') : 'transparent',
+        fg: on ? pc : '#9397ab',
+        border: btnStyle ? '1px solid ' + (on ? pc : '#3f424d') : (on ? '1px solid ' + pc : '1px solid transparent'),
+        radius: btnStyle ? '8px' : '999px',
+        go: () => this.setState({ page: p.id, mobileTab: p.id, detailId: null, selected: null, pageNameDraft: '' })
+      };
+    });
+
+    const tabs = (isOwner
+      ? [{ id: 'home', label: '채널' }, { id: 'reserve', label: '예약' }, { id: 'board', label: '게시판' }, { id: 'me', label: '대시보드' }]
+      : [{ id: 'home', label: '홈' }, { id: 'reserve', label: '예약' }, { id: 'board', label: '게시판' }, { id: 'me', label: '내 정보' }]
+    ).map(t => {
+      const on = st.mobileTab === t.id;
+      return { key: t.id, label: t.label, fg: on ? pc : '#75798c', iconOpacity: on ? 1 : 0.6, go: () => this.setState({ mobileTab: t.id, page: t.id === 'me' ? st.page : t.id, detailId: null }) };
+    });
+
+    const editActions = [
+      { key: 'add', label: '+ 컴포넌트', k: 'components' },
+      { key: 'ch', label: '채널 설정', k: 'channel' },
+      { key: 'pg', label: '페이지 설정', k: 'page' },
+      { key: 'wr', label: '새 글', k: 'write' }
+    ].map(a => ({ ...a, bg: st.sheet === a.k ? '#2b2741' : 'transparent', fg: st.sheet === a.k ? '#e7e5fe' : '#b2b6ca', go: () => this.setState({ sheet: a.k, pageNameDraft: '' }) }));
+
+    const showLeftMobile = isMobile && st.mobileTab === 'me';
+    const dLeft = isMobile ? (showLeftMobile ? 'flex' : 'none') : 'flex';
+    const dCenter = isMobile ? (showLeftMobile ? 'none' : 'flex') : 'flex';
+    const dRight = isMobile ? ((showDetail || showInspector) ? 'flex' : 'none') : 'flex';
+
+    return {
+      pc, isOwner, isVisitor: !isOwner, isMobile, isDesktop: !isMobile, editing,
+      channelName: this.channelName,
+      subdomain: this.slug + '.mysite.co.kr',
+      vpLabel: isMobile ? '모바일 앱 UI · ' + st.vw + 'px' : '데스크톱 웹 UI · 2.5 : 5 : 2.5',
+      gridCols: isMobile ? '1fr' : '2.5fr 5fr 2.5fr',
+      dLeft, dCenter, dRight,
+      rPos: isMobile ? 'absolute' : 'relative',
+      rInset: isMobile ? '0' : 'auto',
+      menuPos: this.menuStyle === 'top-pinned' ? 'sticky' : 'relative',
+
+      setOwner: () => this.setState({ mode: 'owner', detailId: null }),
+      setVisitor: () => this.setState({ mode: 'visitor', editing: false, sheet: null, selected: null }),
+      ownerBtnBg: isOwner ? '#2b2741' : 'transparent',
+      ownerBtnFg: isOwner ? '#e7e5fe' : '#9397ab',
+      visitorBtnBg: !isOwner ? '#2b2741' : 'transparent',
+      visitorBtnFg: !isOwner ? '#e7e5fe' : '#9397ab',
+      toggleEditing: () => this.setState({ editing: !st.editing, sheet: null, selected: null }),
+      editBtnLabel: editing ? '편집 종료' : '채널 편집',
+      editBtnBg: editing ? '#2b2741' : 'transparent',
+      editBtnFg: editing ? '#e7e5fe' : '#b5abfc',
+      toggleEditStyle: () => this.setState({ editStyle: editStyle === 'sheet' ? 'inspector' : 'sheet', selected: null, sheet: null }),
+      editStyleLabel: editStyle === 'sheet' ? 'A 바텀시트' : 'B 인스펙터',
+
+      navPages, tabs, comps,
+      showAddHint: editing,
+      openComponents: () => this.setState({ sheet: 'components' }),
+      openChannel: () => this.setState({ sheet: 'channel' }),
+      openPage: () => this.setState({ sheet: 'page', pageNameDraft: '' }),
+      openWrite: () => this.setState({ sheet: 'write' }),
+
+      showEditBar: editing && (editStyle === 'sheet' || isMobile) && st.fabOpen,
+      showFab: editing && (editStyle === 'sheet' || isMobile),
+      toggleFab: () => this.setState({ fabOpen: !st.fabOpen }),
+      fabIcon: st.fabOpen ? '×' : '✎',
+      fabBottom: isMobile ? '86px' : '28px',
+      barBottom: isMobile ? '86px' : '28px',
+      editActions,
+
+      showInspector, selectedLabel: selectedComp ? TYPE_LABEL[selectedComp.type] : '',
+      selectedTitle: selectedComp ? (selectedComp.title ?? DEFAULT_TITLE[selectedComp.type]) : '',
+      setSelectedTitle: (e) => this.setCompTitle(st.selected, e.target.value),
+      moveSelectedUp: () => this.moveComp(st.selected, -1),
+      moveSelectedDown: () => this.moveComp(st.selected, 1),
+      removeSelected: () => this.removeComp(st.selected),
+      clearSelection: () => this.setState({ selected: null }),
+      padOptions: ['sm', 'md', 'lg'].map(p => ({ key: p, label: p === 'sm' ? '좁게' : p === 'md' ? '보통' : '넓게', ...seg(st.pad === p), pick: () => this.setState({ pad: p }) })),
+
+      showDetail, showRightEmpty: !showDetail && !showInspector && !isMobile,
+      detail: detail ? {
+        ...detail,
+        slotId: 'detail-' + detail.id,
+        slotHint: detail.title,
+        kind: detail.kind || '상세',
+        hasPrice: !!detail.price,
+        hasComments: !!detail.comments,
+        commentCount: st.comments.length,
+        canReserve: !!detail.canReserve
+      } : null,
+      detailComments: st.comments.map((c, i) => ({ key: i, ...c })),
+      commentDraft: st.commentDraft,
+      setCommentDraft: (e) => this.setState({ commentDraft: e.target.value }),
+      submitComment: () => {
+        if (!st.commentDraft.trim()) return this.toast('댓글을 입력하세요');
+        this.setState({ comments: [...st.comments, { author: '한지민', ago: '방금', text: st.commentDraft }], commentDraft: '' });
+        this.toast('댓글을 등록했습니다');
+      },
+      closeDetail: () => this.setState({ detailId: null }),
+      archiveDetail: () => this.toast('내 아카이브에 보관했습니다'),
+      shareDetail: () => this.toast('링크를 복사했습니다 · ' + this.slug + '.mysite.co.kr/p/' + (detail ? detail.id : '')),
+      rightSuggestions: [
+        { key: 's1', label: '1:1 퍼스널 트레이닝 60일', open: () => this.openDetail('p1') },
+        { key: 's2', label: '트레이너 · 박서연', open: () => this.openDetail('t2') },
+        { key: 's3', label: '회원 게시판 · 8주 만에 스쿼트 60 → 85kg', open: () => this.openDetail('b1') }
+      ],
+
+      monthLabel: '2026년 8월',
+      weekdays: ['일', '월', '화', '수', '목', '금', '토'].map((w, i) => ({ key: i, label: w })),
+      calendar: calendar.map((c, i) => ({ key: i, ...c })),
+      slots: slots.map((s, i) => ({ key: i, ...s })),
+      slotsHeading: '8월 ' + st.resDate + '일' + (st.resSlot ? ' · ' + st.resSlot + ' 선택됨' : ' · 시간을 고르세요'),
+      resName: st.resName, resQty: st.resQty, resNote: st.resNote,
+      setResName: (e) => this.setState({ resName: e.target.value }),
+      setResQty: (e) => this.setState({ resQty: e.target.value }),
+      setResNote: (e) => this.setState({ resNote: e.target.value }),
+      reserveCtaLabel: isOwner ? '예약 열기' : '예약 요청',
+      submitReservation: () => {
+        if (!st.resSlot) return this.toast('시간을 먼저 선택하세요');
+        this.toast(isOwner ? '8월 ' + st.resDate + '일 ' + st.resSlot + ' 슬롯을 열었습니다' : '예약 요청을 보냈습니다 · 8월 ' + st.resDate + '일 ' + st.resSlot);
+      },
+      goReserve: () => this.setState({ page: 'reserve', mobileTab: 'reserve', detailId: null }),
+
+      boardPosts: st.boardPosts.map(b => ({ key: b.id, ...b, open: () => this.openDetail(b.id), share: () => this.toast('링크를 복사했습니다') })),
+
+      toggleSubscribe: () => { this.setState({ subscribed: !st.subscribed }); this.toast(st.subscribed ? '구독을 해제했습니다' : '구독했습니다 · 이제 게시판에 글을 쓸 수 있습니다'); },
+      subLabel: st.subscribed ? '구독 중' : '구독하기',
+      subBg: st.subscribed ? '#2b2741' : 'transparent',
+      subFg: st.subscribed ? '#e7e5fe' : pc,
+
+      sheetOpen: !!st.sheet,
+      closeSheet: () => this.setState({ sheet: null }),
+      stop: (e) => e.stopPropagation(),
+      sheetTitle: { components: 'UI 컴포넌트 추가', channel: '채널 설정', page: '페이지 설정', write: '새 글 쓰기' }[st.sheet] || '',
+      sheetIsComponents: st.sheet === 'components',
+      sheetIsChannel: st.sheet === 'channel',
+      sheetIsPage: st.sheet === 'page',
+      sheetIsWrite: st.sheet === 'write',
+      componentLibrary: LIBRARY.map(l => ({ key: l.type, label: l.label, hint: l.hint, add: () => this.addComp(l.type) })),
+
+      slugDraft: st.slugDraft ?? this.slug,
+      setSlug: (e) => this.setState({ slugDraft: e.target.value.toLowerCase() }),
+      slugMessage: slugOk ? '사용할 수 있습니다 — ' + (st.slugDraft ?? this.slug) + '.mysite.co.kr' : '영소문자, 숫자, 하이픈 3~20자',
+      slugColor: slugOk ? '#b5abfc' : '#9397ab',
+      nameDraft: st.nameDraft ?? this.channelName,
+      setName: (e) => this.setState({ nameDraft: e.target.value }),
+      pcDraft: st.pcDraft ?? pc,
+      setPc: (e) => {
+        const v = e.target.value;
+        this.setState({ pcDraft: v, pc: /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v) ? v : st.pc });
+      },
+      swatches: [SILVER, '#a8b0bd', '#8f98a6', '#c9b48a', '#8aa7c9', '#968ae0'].map(h => ({ key: h, hex: h, border: h.toLowerCase() === pc.toLowerCase() ? '2px solid #e9e9ed' : '1px solid #3f424d', pick: () => this.setState({ pc: h, pcDraft: h }) })),
+      menuOptions: [
+        { k: 'top', label: '상단 고정 없음' }, { k: 'top-pinned', label: '상단 고정' }, { k: 'button', label: '버튼형' }
+      ].map(m => ({ key: m.k, label: m.label, ...seg(this.menuStyle === m.k), pick: () => this.setState({ menuStyle: m.k }) })),
+      loaderOptions: [
+        { k: 'spin', label: '스피너' }, { k: 'pulse', label: '펄스' }, { k: 'bar', label: '바' }
+      ].map(l => ({ key: l.k, label: l.label, ...seg(st.loader === l.k), pick: () => this.setState({ loader: l.k }) })),
+      previewLoader: () => {
+        clearTimeout(this._l);
+        this.setState({ loaderVisible: true });
+        this._l = setTimeout(() => this.setState({ loaderVisible: false }), 1500);
+      },
+      loaderVisible: st.loaderVisible,
+      loaderIsSpin: st.loader === 'spin',
+      loaderIsPulse: st.loader === 'pulse',
+      loaderIsBar: st.loader === 'bar',
+      saveChannel: () => {
+        if (!slugOk) return this.toast('채널명을 확인하세요');
+        this.setState({ slug: st.slugDraft ?? this.slug, name: st.nameDraft ?? this.channelName, sheet: null });
+        this.toast('채널 설정을 저장했습니다');
+      },
+
+      pageNameDraft,
+      setPageName: (e) => this.setState({ pageNameDraft: e.target.value }),
+      pageNameMessage: pageNameOk ? '이 채널에서 사용할 수 있는 이름입니다' : '같은 이름의 페이지가 이미 있습니다',
+      pageNameColor: pageNameOk ? '#b5abfc' : '#9397ab',
+      roleOptions: [
+        { k: 'home', label: '홈' }, { k: 'main', label: '메인' }, { k: 'landing', label: '랜딩' }
+      ].map(r => ({ key: r.k, label: r.label, ...seg(page.role === r.k), pick: () => {
+        const pages = st.pages.map(p => p.id === page.id ? { ...p, role: r.k } : (p.role === r.k ? { ...p, role: '' } : p));
+        this.setState({ pages });
+      } })),
+      pageOrder: st.pages.map(p => ({
+        key: p.id, label: p.label, role: p.role ? '· ' + p.role : '',
+        fg: p.id === page.id ? '#e9e9ed' : '#9397ab',
+        up: () => this.movePage(p.id, -1), down: () => this.movePage(p.id, 1)
+      })),
+      addPage: () => {
+        const id = 'pg' + (st.pages.length + 1);
+        this.setState({ pages: [...st.pages, { id, label: '새 페이지 ' + st.pages.length, role: '', comps: [] }], page: id, sheet: null, pageNameDraft: '' });
+        this.toast('페이지를 만들었습니다');
+      },
+      savePage: () => {
+        if (!pageNameOk) return this.toast('페이지 이름을 확인하세요');
+        const pages = st.pages.map(p => p.id === page.id ? { ...p, label: pageNameDraft } : p);
+        this.setState({ pages, sheet: null });
+        this.toast('페이지 설정을 저장했습니다');
+      },
+
+      postTypes: [
+        { k: 'text', label: '글' }, { k: 'photo', label: '사진' }, { k: 'product', label: '상품' }
+      ].map(t => ({ key: t.k, label: t.label, ...seg(st.postType === t.k), pick: () => this.setState({ postType: t.k }) })),
+      postIsProduct: st.postType === 'product',
+      postTitle: st.postTitle, postBody: st.postBody, postPrice: st.postPrice, postQty: st.postQty,
+      setPostTitle: (e) => this.setState({ postTitle: e.target.value }),
+      setPostBody: (e) => this.setState({ postBody: e.target.value }),
+      setPostPrice: (e) => this.setState({ postPrice: e.target.value }),
+      setPostQty: (e) => this.setState({ postQty: e.target.value }),
+      submitPost: () => {
+        if (!st.postTitle.trim()) return this.toast('제목을 입력하세요');
+        const post = { id: 'b' + (st.boardPosts.length + 1), author: isOwner ? this.channelName : '한지민', ago: '방금', tag: isOwner ? '공지' : '자유', title: st.postTitle, excerpt: st.postBody.slice(0, 60) || '내용 없음', comments: 0, saves: 0, body: st.postBody, kind: '게시글' };
+        this.setState({ boardPosts: [post, ...st.boardPosts], sheet: null, postTitle: '', postBody: '', page: 'board', mobileTab: 'board' });
+        this.toast(isOwner ? '공지를 게시했습니다' : '게시 요청을 보냈습니다');
+      },
+
+      ownerName: '스카이짐 · 정민호 관장',
+      visitorName: '한지민',
+      visitorHandle: '@jimin · 프로필 계정',
+      metrics: [
+        { key: 'm1', label: '오늘 예약', value: '11건', delta: '어제 +2', deltaColor: '#b5abfc' },
+        { key: 'm2', label: '이번주 예약', value: '58건', delta: '지난주 +7', deltaColor: '#b5abfc' },
+        { key: 'm3', label: '방문자', value: '412', delta: '조회 1,908', deltaColor: '#75798c' },
+        { key: 'm4', label: '구독자', value: '236', delta: '이번주 +9', deltaColor: '#b5abfc' },
+        { key: 'm5', label: '게시판', value: '4 · 12', delta: '신규 글 · 댓글', deltaColor: '#75798c' },
+        { key: 'm6', label: '이번달 매출', value: '8,940,000', delta: '결제 34건', deltaColor: '#75798c' }
+      ],
+      todayBookings: [
+        { key: 'b1', time: '07:00', name: '이수현', kind: 'PT · 김도훈', status: '확정' },
+        { key: 'b2', time: '09:00', name: '소그룹 4인', kind: '기능성 트레이닝', status: '확정' },
+        { key: 'b3', time: '14:00', name: '한지민', kind: '리포머 1:2 · 박서연', status: '대기' },
+        { key: 'b4', time: '20:00', name: '김태오', kind: 'PT · 이준호', status: '확정' }
+      ],
+      accessRequests: [
+        { key: 'r1', name: '윤지호', note: '비공개 채널 접근 요청 · 2시간 전', approve: () => this.toast('윤지호님의 접근을 승인했습니다') },
+        { key: 'r2', name: '최다은', note: '게시판 글 등록 요청 · 어제', approve: () => this.toast('게시글을 승인했습니다') }
+      ],
+      notifications: [
+        { key: 'n1', dot: '#968ae0', text: '한지민님이 8월 14일 리포머 예약을 요청했습니다', ago: '12분' },
+        { key: 'n2', dot: '#595d6c', text: '게시판에 새 댓글 3개가 달렸습니다', ago: '1시간' },
+        { key: 'n3', dot: '#595d6c', text: 'PT 20회 결제가 완료되었습니다', ago: '3시간' }
+      ],
+      visitorStats: [
+        { key: 'v1', value: '7', label: '구독 채널' }, { key: 'v2', value: '24', label: '보관 콘텐츠' }, { key: 'v3', value: '2', label: '예약' }
+      ],
+      myBookings: [
+        { key: 'mb1', title: '리포머 1:2 · 박서연', when: '8월 14일 (금) 14:00', status: '대기', edit: () => { this.setState({ page: 'reserve', mobileTab: 'reserve' }); this.toast('예약 변경 화면으로 이동했습니다'); }, cancel: () => this.toast('예약을 취소했습니다') },
+        { key: 'mb2', title: 'PT · 김도훈', when: '8월 17일 (월) 07:00', status: '확정', edit: () => { this.setState({ page: 'reserve', mobileTab: 'reserve' }); this.toast('예약 변경 화면으로 이동했습니다'); }, cancel: () => this.toast('예약을 취소했습니다') }
+      ],
+      archiveCats: [
+        { k: 'all', label: '전체' }, { k: 'channel', label: '채널' }, { k: 'content', label: '콘텐츠' }, { k: 'product', label: '상품' }
+      ].map(c => ({ key: c.k, label: c.label, ...seg(st.archiveCat === c.k), select: () => this.setState({ archiveCat: c.k }) })),
+      archiveItems: [
+        { key: 'a1', title: '스카이짐', meta: '채널 · 구독 중', open: () => this.setState({ page: 'home', mobileTab: 'home' }) },
+        { key: 'a2', title: '체형 교정, 무엇을 먼저 봐야 하나', meta: '콘텐츠 · 스카이짐', open: () => this.openDetail('p4') },
+        { key: 'a3', title: 'WPI 프로틴 1kg', meta: '상품 · 48,000원', open: () => this.openDetail('g1') },
+        { key: 'a4', title: '8주 만에 스쿼트 60 → 85kg', meta: '게시글 · 스카이짐', open: () => this.openDetail('b1') }
+      ],
+      toast: st.toast, toastVisible: !!st.toast
+    };
+  }
+}
+
+</script>
+</body>
+</html>
